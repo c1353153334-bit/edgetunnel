@@ -1,0 +1,27 @@
+name: Sync from upstream
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/zizifn/edgetunnel.git
+          git fetch upstream main
+          git merge upstream/main --no-edit || echo "Merge skipped/conflict; please resolve manually"
+          git push origin main || echo "Nothing to push"
+      - name: Trigger deploy
+        run: gh workflow run deploy.yml || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
