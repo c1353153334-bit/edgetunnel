@@ -2,9 +2,5 @@ name = "edtunnel"
 main = "src/worker-vless.js"
 compatibility_date = "2024-04-15"
 
-routes = [
-  { pattern = "node.csy0310.ccwu.cc/*", zone_name = "csy0310.ccwu.cc" }
-]
-
 [vars]
 UUID = "483f6321-e1fe-4b1e-a7ce-12d75bc4972c"
