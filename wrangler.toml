@@ -1,5 +1,6 @@
 # edtunnel-node worker deployment config (auto-deploy via GitHub Actions)
 # Domain: node.csy0310.ccwu.cc | UUID set below
+# v2: explicit npx deploy
 name = "edtunnel-node"
 main = "src/worker-vless.js"
 compatibility_date = "2024-04-15"
