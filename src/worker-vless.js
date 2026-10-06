@@ -1,4 +1,4 @@
-// <!--GAMFC-->version base on commit 9bed78ca765de521995a4e459218d20806ca04af, time is 2026-10-06 02:39:07 UTC<!--GAMFC-END-->.
+// <!--GAMFC-->version base on commit 0d084310790cb47563b931ee753639b13188fa86, time is 2026-10-06 02:17:48 UTC<!--GAMFC-END-->.
 // @ts-ignore
 import { connect } from 'cloudflare:sockets';
 
@@ -601,24 +601,19 @@ async function handleUDPOutBound(webSocket, vlessResponseHeader, log) {
  */
 function getVLESSConfig(userID, hostName) {
 	const protocol = "vless";
-	const vlessMain = 
-	`${protocol}` + 
-	`://${userID}@${hostName}:443`+
-	`?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2048#${hostName}`;
-	
-	return `
-################################################################
-v2ray
----------------------------------------------------------------
-${vlessMain}
----------------------------------------------------------------
-################################################################
-clash-meta
----------------------------------------------------------------
-- type: vless
-  name: ${hostName}
+	const tlsPorts = [443, 8443, 2053, 2083, 2087, 2096];
+	const plainPorts = [80, 8880, 2052, 2082, 2086, 2095];
+	const v2rayList = [];
+	const clashList = [];
+	for (const port of tlsPorts) {
+		const name = `${hostName}:${port}`;
+		v2rayList.push(
+			`${protocol}://${userID}@${hostName}:${port}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2048#${name}`
+		);
+		clashList.push(`  - type: vless
+  name: ${name}
   server: ${hostName}
-  port: 443
+  port: ${port}
   uuid: ${userID}
   network: ws
   tls: true
@@ -628,9 +623,39 @@ clash-meta
   ws-opts:
     path: "/?ed=2048"
     headers:
-      host: ${hostName}
----------------------------------------------------------------
+      host: ${hostName}`);
+	}
+	for (const port of plainPorts) {
+		const name = `${hostName}:${port}`;
+		v2rayList.push(
+			`${protocol}://${userID}@${hostName}:${port}?encryption=none&security=none&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2048#${name}`
+		);
+		clashList.push(`  - type: vless
+  name: ${name}
+  server: ${hostName}
+  port: ${port}
+  uuid: ${userID}
+  network: ws
+  tls: false
+  udp: false
+  sni: ${hostName}
+  client-fingerprint: chrome
+  ws-opts:
+    path: "/?ed=2048"
+    headers:
+      host: ${hostName}`);
+	}
+	return `
+################################################################
+v2ray
+----------------------------------------------------------------
+${v2rayList.join("\n")}
+----------------------------------------------------------------
+################################################################
+clash-meta
+----------------------------------------------------------------
+${clashList.join("\n")}
+----------------------------------------------------------------
 ################################################################
 `;
 }
-
